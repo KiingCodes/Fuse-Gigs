@@ -1,10 +1,10 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, MapPin, Users } from "lucide-react";
 
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '-3s' }} />
@@ -13,37 +13,36 @@ const HeroSection = () => {
 
       <div className="container relative z-10 px-4 py-20">
         <div className="max-w-4xl mx-auto text-center animate-slide-up">
-          {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-primary">Discover Local Heroes</span>
           </div>
 
-          {/* Main heading */}
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6">
             Your Next
             <span className="text-gradient block">Side Quest</span>
             Awaits
           </h1>
 
-          {/* Subheading */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             Connect with passionate hustlers and small businesses in your community. 
             Every local shop is an adventure waiting to be discovered.
           </p>
 
-          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button variant="hero" size="xl">
-              Start Exploring
-              <ArrowRight className="w-5 h-5" />
-            </Button>
-            <Button variant="heroOutline" size="xl">
-              Join as a Hustler
-            </Button>
+            <Link to="/explore">
+              <Button variant="hero" size="xl">
+                Start Exploring
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to="/auth?signup=true&hustler=true">
+              <Button variant="heroOutline" size="xl">
+                Join as a Hustler
+              </Button>
+            </Link>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 text-3xl md:text-4xl font-display font-bold text-foreground mb-1">

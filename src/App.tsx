@@ -19,6 +19,10 @@ import EditHustle from "./pages/EditHustle";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import DashboardSettings from "./pages/DashboardSettings";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import HelpCenter from "./pages/HelpCenter";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +42,10 @@ const App = () => (
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/categories/:slug" element={<CategoryHustles />} />
             <Route path="/for-hustlers" element={<ForHustlers />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/help" element={<HelpCenter />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/dashboard" element={<ProtectedRoute requireHustler><Dashboard /></ProtectedRoute>}>
               <Route path="hustles" element={<ManageHustles />} />
               <Route path="hustles/new" element={<CreateHustle />} />

@@ -112,7 +112,7 @@ const FeaturedQuests = () => {
             Trending Now
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Featured Quests
+            Featured Gigs
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Discover the most loved local businesses and hustlers in your area. 

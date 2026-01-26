@@ -16,7 +16,7 @@ const Footer = () => {
                 className="h-24 w-auto object-contain"
               />
               <span className="font-display text-xl font-bold text-secondary-foreground">
-                Side Quest
+                Fuse Gigs
               </span>
             </Link>
 
@@ -137,11 +137,11 @@ const Footer = () => {
         {/* Bottom */}
         <div className="pt-8 border-t border-secondary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-secondary-foreground/50">
-            © 2026 Side Quest. All rights reserved.
+            © 2026 Fuse Gigs. All rights reserved.
           </p>
           <div className="flex items-center gap-2 text-sm text-secondary-foreground/50">
             <Mail className="w-4 h-4" />
-            <span>hello@sidequest.app</span>
+            <span>kiingcodes@outlook.com</span>
           </div>
         </div>
       </div>

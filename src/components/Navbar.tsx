@@ -35,7 +35,7 @@ const Navbar = () => {
               className="h-20 w-auto object-contain"
             />
             <span className="font-display text-xl font-bold text-foreground">
-              Side Quest
+              Fuse Gigs
             </span>
           </Link>
 

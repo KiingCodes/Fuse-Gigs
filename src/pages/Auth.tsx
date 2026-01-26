@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
-import { Compass, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import { Link } from "react-router-dom";
+import logo from "../assets/logo.png"; // <-- your real logo
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
@@ -110,10 +110,13 @@ const Auth = () => {
             Back to home
           </Link>
 
-          <div className="flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-gradient-hero rounded-xl flex items-center justify-center">
-              <Compass className="w-6 h-6 text-primary-foreground" />
-            </div>
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-8">
+            <img
+              src={logo}
+              alt="Side Quest"
+              className="h-12 w-auto object-contain" // logo size
+            />
             <span className="font-display text-xl font-bold text-foreground">Side Quest</span>
           </div>
 
@@ -137,9 +140,7 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className={errors.email ? "border-destructive" : ""}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
-              )}
+              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -147,14 +148,12 @@ const Auth = () => {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={errors.password ? "border-destructive" : ""}
               />
-              {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
-              )}
+              {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
             </div>
 
             {isSignUp && (
@@ -208,3 +207,4 @@ const Auth = () => {
 };
 
 export default Auth;
+

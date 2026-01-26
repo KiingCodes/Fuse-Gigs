@@ -69,7 +69,7 @@ const ForHustlers = () => {
             <div className="max-w-3xl mx-auto text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
                 <Rocket className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Join 500+ Local Hustlers</span>
+                <span className="text-sm font-medium text-primary">Join 100+ Local Hustlers</span>
               </div>
               
               <h1 className="font-display text-5xl md:text-6xl font-bold text-foreground mb-6">

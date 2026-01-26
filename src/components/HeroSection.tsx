@@ -20,7 +20,7 @@ const HeroSection = () => {
 
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold leading-tight mb-6">
             Your Next
-            <span className="text-gradient block">Side Quest</span>
+            <span className="text-gradient block">Fuse Gigs</span>
             Awaits
           </h1>
 
@@ -47,21 +47,21 @@ const HeroSection = () => {
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 text-3xl md:text-4xl font-display font-bold text-foreground mb-1">
                 <MapPin className="w-6 h-6 text-primary" />
-                500+
+                20+
               </div>
               <p className="text-sm text-muted-foreground">Local Businesses</p>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 text-3xl md:text-4xl font-display font-bold text-foreground mb-1">
                 <Users className="w-6 h-6 text-accent" />
-                10K+
+                100+
               </div>
               <p className="text-sm text-muted-foreground">Active Explorers</p>
             </div>
             <div className="text-center col-span-2 md:col-span-1">
               <div className="flex items-center justify-center gap-2 text-3xl md:text-4xl font-display font-bold text-foreground mb-1">
                 <Sparkles className="w-6 h-6 text-primary" />
-                50+
+                8+
               </div>
               <p className="text-sm text-muted-foreground">Categories</p>
             </div>

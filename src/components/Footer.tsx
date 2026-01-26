@@ -1,4 +1,5 @@
-import { Compass, Instagram, Twitter, Facebook, Mail } from "lucide-react";
+import { Instagram, Twitter, Facebook, Mail } from "lucide-react";
+import logo from "../assets/logo.png"; // <-- Your real logo
 
 const Footer = () => {
   return (
@@ -7,10 +8,12 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-hero rounded-xl flex items-center justify-center">
-                <Compass className="w-6 h-6 text-primary-foreground" />
-              </div>
+            <div className="flex items-center gap-3 mb-4">
+              <img 
+                src={logo} 
+                alt="Side Quest" 
+                className="h-24 w-auto object-contain" // slightly bigger
+              />
               <span className="font-display text-xl font-bold text-secondary-foreground">Side Quest</span>
             </div>
             <p className="text-sm text-secondary-foreground/60 mb-6">
@@ -66,7 +69,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="pt-8 border-t border-secondary-foreground/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-secondary-foreground/50">
-            © 2024 Side Quest. All rights reserved.
+            © 2026 Side Quest. All rights reserved.
           </p>
           <div className="flex items-center gap-2 text-sm text-secondary-foreground/50">
             <Mail className="w-4 h-4" />

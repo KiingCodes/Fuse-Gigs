@@ -6,7 +6,15 @@ import {
   Camera, 
   Music, 
   Leaf, 
-  Scissors 
+  Scissors,
+  Plane,        // Travel & Leisure
+  Cpu,             // Technology & Innovation
+  Users,           // Freelance / Gigs
+  Heart,           // Community & Social
+  Truck,           // Transportation & Mobility
+  Dumbbell,        // Fitness & Wellness
+  BookOpen,        // Education & Tutoring
+  TreeDeciduous          // Parks & Nature
 } from "lucide-react";
 import CategoryCard from "./CategoryCard";
 
@@ -19,6 +27,16 @@ const categories = [
   { name: "Music", icon: Music, count: 38, color: "#ef4444" },
   { name: "Plants & Garden", icon: Leaf, count: 52, color: "#22c55e" },
   { name: "Beauty", icon: Scissors, count: 73, color: "#f472b6" },
+
+  // New Categories
+  { name: "Travel & Leisure", icon: Plane, count: 41, color: "#0ea5e9" },
+  { name: "Technology & Innovation", icon: Cpu, count: 29, color: "#6366f1" },
+  { name: "Freelance / Gigs", icon: Users, count: 56, color: "#f59e0b" },
+  { name: "Community & Social", icon: Heart, count: 64, color: "#ef4444" },
+  { name: "Transportation & Mobility", icon: Truck, count: 33, color: "#3b82f6" },
+  { name: "Fitness & Wellness", icon: Dumbbell, count: 48, color: "#22c55e" },
+  { name: "Education & Tutoring", icon: BookOpen, count: 37, color: "#8b5cf6" },
+  { name: "Parks & Nature", icon: TreeDeciduous, count: 22, color: "#16a34a" },
 ];
 
 const Categories = () => {

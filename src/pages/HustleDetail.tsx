@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import StartChatButton from "@/components/StartChatButton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -365,6 +366,11 @@ const HustleDetail = () => {
                     <p className="text-sm text-muted-foreground">Hustler</p>
                   </div>
                 </div>
+                <StartChatButton 
+                  hustleId={hustle.id}
+                  hustleOwnerId={hustle.owner_id}
+                  hustleOwnerName={hustle.profiles?.username || "Hustler"}
+                />
               </div>
 
               {/* Contact Card */}

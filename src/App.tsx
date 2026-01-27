@@ -23,6 +23,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/help" element={<HelpCenter />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/install" element={<Install />} />
             <Route path="/dashboard" element={<ProtectedRoute requireHustler><Dashboard /></ProtectedRoute>}>
               <Route path="hustles" element={<ManageHustles />} />
               <Route path="hustles/new" element={<CreateHustle />} />

@@ -105,7 +105,7 @@ const TestimonialForm = ({ open, onOpenChange, onSuccess }: TestimonialFormProps
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">Share Your Experience</DialogTitle>
           <DialogDescription>
-            Tell us about your experience with Side Quest. Your feedback helps our community grow!
+            Tell us about your experience with Fuse Gigs. Your feedback helps our community grow!
           </DialogDescription>
         </DialogHeader>
 
@@ -118,7 +118,7 @@ const TestimonialForm = ({ open, onOpenChange, onSuccess }: TestimonialFormProps
                 <FormItem>
                   <FormLabel>Your Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="Kiing Ncube" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -181,7 +181,7 @@ const TestimonialForm = ({ open, onOpenChange, onSuccess }: TestimonialFormProps
                   <FormLabel>Your Testimonial</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Share your experience with Side Quest..."
+                      placeholder="Share your experience with Fuse Gigs..."
                       className="min-h-[120px] resize-none"
                       {...field}
                     />

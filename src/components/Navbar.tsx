@@ -59,6 +59,12 @@ const Navbar = () => {
             >
               For Hustlers
             </Link>
+            <Link
+              to="/pricing"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Pricing
+            </Link>
           </div>
 
           {/* Desktop CTA */}
@@ -167,6 +173,14 @@ const Navbar = () => {
                 className="text-sm font-medium text-muted-foreground hover:text-foreground py-2"
               >
                 For Hustlers
+              </Link>
+
+              <Link
+                to="/pricing"
+                onClick={() => setIsMenuOpen(false)}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground py-2"
+              >
+                Pricing
               </Link>
 
               <div className="flex gap-3 pt-4 border-t border-border">

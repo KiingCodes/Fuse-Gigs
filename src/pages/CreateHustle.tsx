@@ -17,6 +17,8 @@ import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { useSubscription, useTrackUsage } from "@/hooks/useSubscription";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 interface Category {
   id: string;
@@ -37,12 +39,16 @@ const CreateHustle = () => {
   const { user, profile, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
+  const { trackPost } = useTrackUsage();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [currentHustleCount, setCurrentHustleCount] = useState(0);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -56,7 +62,10 @@ const CreateHustle = () => {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+    if (profile?.id) {
+      fetchCurrentHustleCount();
+    }
+  }, [profile?.id]);
 
   const fetchCategories = async () => {
     const { data } = await supabase
@@ -64,6 +73,15 @@ const CreateHustle = () => {
       .select("id, name")
       .order("display_order");
     if (data) setCategories(data);
+  };
+
+  const fetchCurrentHustleCount = async () => {
+    if (!profile?.id) return;
+    const { count } = await supabase
+      .from("hustles")
+      .select("*", { count: "exact", head: true })
+      .eq("owner_id", profile.id);
+    setCurrentHustleCount(count || 0);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,6 +114,17 @@ const CreateHustle = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // Check if user can create more hustles
+    const canPost = subscription?.canPost ?? true;
+    const limit = subscription?.limits?.posts ?? 1;
+    const isPro = subscription?.isPro ?? false;
+    
+    // Non-pro users are limited to 1 hustle
+    if (!isPro && currentHustleCount >= limit) {
+      setShowUpgradePrompt(true);
+      return;
+    }
 
     // Ensure user is a hustler
     if (!profile?.is_hustler) {
@@ -144,6 +173,15 @@ const CreateHustle = () => {
         variant: "destructive"
       });
     } else {
+      // Track usage for non-pro users
+      if (!isPro) {
+        try {
+          await trackPost();
+        } catch (err) {
+          console.error("Failed to track usage:", err);
+        }
+      }
+      
       toast({
         title: "Success!",
         description: "Your hustle has been created."
@@ -153,6 +191,11 @@ const CreateHustle = () => {
 
     setLoading(false);
   };
+
+  // Show remaining posts for non-pro users
+  const remainingPosts = subscription?.isPro 
+    ? "Unlimited" 
+    : Math.max(0, (subscription?.limits?.posts ?? 1) - currentHustleCount);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -165,7 +208,14 @@ const CreateHustle = () => {
       </Link>
 
       <div className="bg-card rounded-xl border border-border p-6">
-        <h2 className="font-display text-2xl font-bold text-foreground mb-6">Create New Hustle</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-display text-2xl font-bold text-foreground">Create New Hustle</h2>
+          {!subscription?.isPro && (
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{remainingPosts}</span> post{remainingPosts !== 1 && remainingPosts !== "Unlimited" ? "s" : ""} remaining
+            </div>
+          )}
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Image Upload */}
@@ -295,7 +345,7 @@ const CreateHustle = () => {
                 id="contact_phone"
                 value={formData.contact_phone}
                 onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
-                placeholder="+1 (555) 000-0000"
+                placeholder="+27 12 345 6789"
                 className={errors.contact_phone ? "border-destructive" : ""}
               />
               {errors.contact_phone && <p className="text-sm text-destructive">{errors.contact_phone}</p>}
@@ -315,7 +365,7 @@ const CreateHustle = () => {
             {errors.website_url && <p className="text-sm text-destructive">{errors.website_url}</p>}
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || subscriptionLoading}>
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -327,6 +377,14 @@ const CreateHustle = () => {
           </Button>
         </form>
       </div>
+
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onOpenChange={setShowUpgradePrompt}
+        type="posts"
+        currentCount={currentHustleCount}
+        limit={subscription?.limits?.posts ?? 1}
+      />
     </div>
   );
 };

@@ -25,6 +25,7 @@ import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
 import Install from "./pages/Install";
 import Pricing from "./pages/Pricing";
+import Applicants from "./pages/Applicants";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="hustles/new" element={<CreateHustle />} />
               <Route path="hustles/:id/edit" element={<EditHustle />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="applicants" element={<Applicants />} />
               <Route path="profile" element={<Profile />} />
               <Route path="settings" element={<DashboardSettings />} />
             </Route>

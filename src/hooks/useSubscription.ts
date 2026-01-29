@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -113,4 +113,120 @@ export const useCreateBoostCheckout = () => {
   };
 
   return { createBoostCheckout };
+};
+
+// Hook to track usage when creating hustles or applying
+export const useTrackUsage = () => {
+  const { session, user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const trackPost = async () => {
+    if (!session?.access_token || !user) throw new Error("Not authenticated");
+
+    const monthYear = new Date().toISOString().slice(0, 7);
+    
+    // Check if usage record exists
+    const { data: existingUsage } = await supabase
+      .from("usage_tracking")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("month_year", monthYear)
+      .maybeSingle();
+
+    if (existingUsage) {
+      // Update existing record
+      await supabase
+        .from("usage_tracking")
+        .update({ 
+          posts_count: existingUsage.posts_count + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", existingUsage.id);
+    } else {
+      // Create new record
+      await supabase
+        .from("usage_tracking")
+        .insert({
+          user_id: user.id,
+          month_year: monthYear,
+          posts_count: 1,
+          applications_count: 0,
+        });
+    }
+
+    // Invalidate subscription cache to refresh limits
+    queryClient.invalidateQueries({ queryKey: ["subscription", user.id] });
+  };
+
+  const trackApplication = async () => {
+    if (!session?.access_token || !user) throw new Error("Not authenticated");
+
+    const monthYear = new Date().toISOString().slice(0, 7);
+    
+    const { data: existingUsage } = await supabase
+      .from("usage_tracking")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("month_year", monthYear)
+      .maybeSingle();
+
+    if (existingUsage) {
+      await supabase
+        .from("usage_tracking")
+        .update({ 
+          applications_count: existingUsage.applications_count + 1,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", existingUsage.id);
+    } else {
+      await supabase
+        .from("usage_tracking")
+        .insert({
+          user_id: user.id,
+          month_year: monthYear,
+          posts_count: 0,
+          applications_count: 1,
+        });
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["subscription", user.id] });
+  };
+
+  return { trackPost, trackApplication };
+};
+
+// Hook to check if a specific hustle owner is Pro
+export const useHustleOwnerStatus = (ownerId: string | undefined) => {
+  return useQuery({
+    queryKey: ["hustle-owner-status", ownerId],
+    queryFn: async () => {
+      if (!ownerId) return { isPro: false, planType: null };
+
+      // Get the user_id from the profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("id", ownerId)
+        .maybeSingle();
+
+      if (!profile?.user_id) return { isPro: false, planType: null };
+
+      // Check their subscription
+      const { data: subscription } = await supabase
+        .from("user_subscriptions")
+        .select("status, subscription_plans(type)")
+        .eq("user_id", profile.user_id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (!subscription) return { isPro: false, planType: null };
+
+      return {
+        isPro: subscription.status === "active",
+        planType: (subscription.subscription_plans as any)?.type || null,
+      };
+    },
+    enabled: !!ownerId,
+    staleTime: 1000 * 60 * 10, // Cache for 10 minutes
+  });
 };

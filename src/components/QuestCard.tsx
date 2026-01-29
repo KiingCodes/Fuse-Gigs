@@ -1,4 +1,5 @@
-import { MapPin, Star, ArrowUpRight } from "lucide-react";
+import { MapPin, Star, ArrowUpRight, Crown, Zap } from "lucide-react";
+import ProBadge from "./ProBadge";
 
 interface QuestCardProps {
   name: string;
@@ -8,9 +9,21 @@ interface QuestCardProps {
   rating: number;
   image: string;
   featured?: boolean;
+  isPro?: boolean;
+  isVerifiedBusiness?: boolean;
 }
 
-const QuestCard = ({ name, category, description, location, rating, image, featured }: QuestCardProps) => {
+const QuestCard = ({ 
+  name, 
+  category, 
+  description, 
+  location, 
+  rating, 
+  image, 
+  featured,
+  isPro,
+  isVerifiedBusiness
+}: QuestCardProps) => {
   return (
     <div 
       className={`group relative bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-500 hover:-translate-y-2 ${
@@ -21,6 +34,14 @@ const QuestCard = ({ name, category, description, location, rating, image, featu
       {featured && (
         <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-gradient-hero rounded-full">
           <span className="text-xs font-semibold text-primary-foreground">Featured Quest</span>
+        </div>
+      )}
+
+      {/* Pro/Verified badges */}
+      {(isPro || isVerifiedBusiness) && (
+        <div className="absolute top-4 right-14 z-20 flex gap-1">
+          {isPro && <ProBadge type="hustler" size="sm" showLabel={false} />}
+          {isVerifiedBusiness && <ProBadge type="employer" size="sm" showLabel={false} />}
         </div>
       )}
 

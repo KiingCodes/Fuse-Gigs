@@ -4,19 +4,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useSubscription } from "@/hooks/useSubscription";
+import ProBadge from "@/components/ProBadge";
+import UpgradePrompt from "@/components/UpgradePrompt";
 import { 
   Plus, 
   Edit, 
   Trash2, 
   Eye,
   MoreVertical,
-  MapPin
+  MapPin,
+  Rocket,
+  Crown,
+  Loader2
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -29,6 +36,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useCreateBoostCheckout } from "@/hooks/useSubscription";
 
 interface Hustle {
   id: string;
@@ -47,9 +55,13 @@ interface Hustle {
 const ManageHustles = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { data: subscription, isLoading: subscriptionLoading } = useSubscription();
+  const { createBoostCheckout } = useCreateBoostCheckout();
   const [hustles, setHustles] = useState<Hustle[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [boostingHustle, setBoostingHustle] = useState<string | null>(null);
 
   useEffect(() => {
     if (profile?.id) {
@@ -127,6 +139,36 @@ const ManageHustles = () => {
     setDeleteId(null);
   };
 
+  const handleBoostHustle = async (hustleId: string, boostType: string) => {
+    setBoostingHustle(hustleId);
+    try {
+      const url = await createBoostCheckout(boostType, hustleId);
+      window.location.href = url;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to start boost checkout. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setBoostingHustle(null);
+    }
+  };
+
+  const handleNewHustle = () => {
+    // Check if user can create more hustles
+    const isPro = subscription?.isPro ?? false;
+    const limit = subscription?.limits?.posts ?? 1;
+    
+    if (!isPro && hustles.length >= limit) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+    
+    // Navigate to create page
+    window.location.href = "/dashboard/hustles/new";
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -135,20 +177,46 @@ const ManageHustles = () => {
     );
   }
 
+  const canCreateMore = subscription?.isPro || hustles.length < (subscription?.limits?.posts ?? 1);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-display text-2xl font-bold text-foreground">My Hustles</h2>
-          <p className="text-muted-foreground">Manage your business listings</p>
+          <p className="text-muted-foreground">
+            Manage your business listings
+            {!subscription?.isPro && (
+              <span className="ml-2 text-sm">
+                ({hustles.length}/{subscription?.limits?.posts ?? 1} used)
+              </span>
+            )}
+          </p>
         </div>
-        <Link to="/dashboard/hustles/new">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            New Hustle
-          </Button>
-        </Link>
+        <Button onClick={handleNewHustle} disabled={!canCreateMore && !subscription?.isPro}>
+          <Plus className="w-4 h-4 mr-2" />
+          New Hustle
+          {!canCreateMore && !subscription?.isPro && (
+            <Crown className="w-4 h-4 ml-2 text-yellow-500" />
+          )}
+        </Button>
       </div>
+
+      {/* Pro benefits banner */}
+      {!subscription?.isPro && (
+        <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-4 border border-primary/20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Crown className="w-5 h-5 text-primary" />
+            <div>
+              <p className="font-medium text-foreground">Unlock Unlimited Hustles</p>
+              <p className="text-sm text-muted-foreground">Pro members can create unlimited business listings</p>
+            </div>
+          </div>
+          <Link to="/pricing">
+            <Button size="sm">Upgrade</Button>
+          </Link>
+        </div>
+      )}
 
       {hustles.length === 0 ? (
         <div className="text-center py-20 bg-card rounded-xl border border-border">
@@ -156,12 +224,10 @@ const ManageHustles = () => {
           <p className="text-muted-foreground mb-6">
             Create your first hustle to start getting discovered.
           </p>
-          <Link to="/dashboard/hustles/new">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Hustle
-            </Button>
-          </Link>
+          <Button onClick={handleNewHustle}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Your First Hustle
+          </Button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -185,6 +251,13 @@ const ManageHustles = () => {
                     <span className="px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
                       Featured
                     </span>
+                  )}
+                  {subscription?.isPro && (
+                    <ProBadge 
+                      type={subscription.planType === "employer" ? "employer" : "hustler"} 
+                      size="sm"
+                      showLabel={false}
+                    />
                   )}
                 </div>
                 {hustle.categories && (
@@ -228,6 +301,20 @@ const ManageHustles = () => {
                         Edit
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => handleBoostHustle(hustle.id, "gig_24h")}
+                      disabled={boostingHustle === hustle.id}
+                      className="flex items-center gap-2"
+                    >
+                      {boostingHustle === hustle.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Rocket className="w-4 h-4" />
+                      )}
+                      Boost (R29)
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem 
                       onClick={() => setDeleteId(hustle.id)}
                       className="text-destructive flex items-center gap-2"
@@ -259,6 +346,14 @@ const ManageHustles = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onOpenChange={setShowUpgradePrompt}
+        type="posts"
+        currentCount={hustles.length}
+        limit={subscription?.limits?.posts ?? 1}
+      />
     </div>
   );
 };

@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useToast } from "@/hooks/use-toast";
+import ProBadge from "@/components/ProBadge";
 import logo from "../assets/logo.png";
 import {
   LayoutDashboard,
@@ -15,6 +18,9 @@ import {
   Eye,
   Star,
   TrendingUp,
+  Crown,
+  Users,
+  Briefcase,
 } from "lucide-react";
 
 interface DashboardStats {
@@ -27,6 +33,9 @@ interface DashboardStats {
 const Dashboard = () => {
   const { profile } = useAuth();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+  const { data: subscription } = useSubscription();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     totalHustles: 0,
@@ -36,6 +45,22 @@ const Dashboard = () => {
   });
 
   const isOverview = location.pathname === "/dashboard";
+
+  // Check for success params
+  useEffect(() => {
+    if (searchParams.get("subscription") === "success") {
+      toast({
+        title: "Subscription activated! 🎉",
+        description: "Welcome to Pro! Enjoy unlimited features.",
+      });
+    }
+    if (searchParams.get("boost") === "success") {
+      toast({
+        title: "Boost activated! 🚀",
+        description: "Your visibility has been boosted.",
+      });
+    }
+  }, [searchParams, toast]);
 
   const fetchStats = useCallback(async () => {
     if (!profile?.id) return;
@@ -81,6 +106,11 @@ const Dashboard = () => {
     { icon: Settings, label: "Settings", path: "/dashboard/settings" },
   ];
 
+  // Add employer-specific nav items
+  if (subscription?.planType === "employer") {
+    navItems.splice(2, 0, { icon: Users, label: "Applicants", path: "/dashboard/applicants" });
+  }
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
@@ -104,6 +134,16 @@ const Dashboard = () => {
             </Link>
           </div>
 
+          {/* Subscription Status */}
+          {subscription?.isPro && (
+            <div className="px-4 py-3 border-b border-border">
+              <ProBadge 
+                type={subscription.planType === "employer" ? "employer" : "hustler"} 
+                size="default" 
+              />
+            </div>
+          )}
+
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
             {navItems.map((item) => {
@@ -125,6 +165,18 @@ const Dashboard = () => {
               );
             })}
           </nav>
+
+          {/* Upgrade CTA for non-pro users */}
+          {!subscription?.isPro && (
+            <div className="p-4 border-t border-border">
+              <Link to="/pricing">
+                <Button variant="outline" className="w-full mb-2">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to Pro
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Quick Action */}
           <div className="p-4 border-t border-border">
@@ -186,14 +238,43 @@ const Dashboard = () => {
           {isOverview ? (
             <div className="space-y-8">
               {/* Welcome */}
-              <div>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                  Welcome back, {profile?.username || "Hustler"}!
-                </h2>
-                <p className="text-muted-foreground">
-                  Here's how your hustles are performing.
-                </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">
+                    Welcome back, {profile?.username || "Hustler"}!
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Here's how your hustles are performing.
+                  </p>
+                </div>
+                {subscription?.isPro && (
+                  <ProBadge 
+                    type={subscription.planType === "employer" ? "employer" : "hustler"} 
+                    size="lg" 
+                  />
+                )}
               </div>
+
+              {/* Usage Stats for non-pro */}
+              {!subscription?.isPro && (
+                <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-6 border border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">Free Plan</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {subscription?.usage?.posts_count ?? 0}/{subscription?.limits?.posts ?? 1} hustles created • 
+                        {subscription?.usage?.applications_count ?? 0}/{subscription?.limits?.applications ?? 5} applications this month
+                      </p>
+                    </div>
+                    <Link to="/pricing">
+                      <Button>
+                        <Crown className="w-4 h-4 mr-2" />
+                        Go Pro
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              )}
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -217,6 +298,33 @@ const Dashboard = () => {
                   value={stats.averageRating.toFixed(1)}
                   label="Avg Rating"
                 />
+              </div>
+
+              {/* Quick Actions */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Link to="/dashboard/hustles/new" className="block">
+                  <div className="bg-card rounded-xl p-6 border border-border hover:border-primary transition-colors">
+                    <Plus className="w-8 h-8 text-primary mb-3" />
+                    <h3 className="font-semibold text-foreground mb-1">Create New Hustle</h3>
+                    <p className="text-sm text-muted-foreground">List a new business or service</p>
+                  </div>
+                </Link>
+                <Link to="/dashboard/analytics" className="block">
+                  <div className="bg-card rounded-xl p-6 border border-border hover:border-primary transition-colors">
+                    <BarChart3 className="w-8 h-8 text-primary mb-3" />
+                    <h3 className="font-semibold text-foreground mb-1">View Analytics</h3>
+                    <p className="text-sm text-muted-foreground">Track your performance</p>
+                  </div>
+                </Link>
+                {!subscription?.isPro && (
+                  <Link to="/pricing" className="block">
+                    <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl p-6 border border-primary/30 hover:border-primary transition-colors">
+                      <Crown className="w-8 h-8 text-primary mb-3" />
+                      <h3 className="font-semibold text-foreground mb-1">Upgrade to Pro</h3>
+                      <p className="text-sm text-muted-foreground">Unlock unlimited features</p>
+                    </div>
+                  </Link>
+                )}
               </div>
             </div>
           ) : (

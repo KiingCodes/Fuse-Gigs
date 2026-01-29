@@ -10,13 +10,22 @@ interface Hustle {
   location: string | null;
   image_url: string | null;
   is_featured: boolean | null;
+  owner_id: string;
   category: {
     name: string;
   } | null;
 }
 
+interface OwnerSubscription {
+  [ownerId: string]: {
+    isPro: boolean;
+    planType: string | null;
+  };
+}
+
 const FeaturedQuests = () => {
   const [hustles, setHustles] = useState<Hustle[]>([]);
+  const [ownerSubscriptions, setOwnerSubscriptions] = useState<OwnerSubscription>({});
 
   useEffect(() => {
     const fetchFeaturedHustles = async () => {
@@ -29,6 +38,7 @@ const FeaturedQuests = () => {
           location,
           image_url,
           is_featured,
+          owner_id,
           category:categories(name)
         `)
         .eq("is_active", true)
@@ -37,11 +47,46 @@ const FeaturedQuests = () => {
       
       if (data) {
         setHustles(data as Hustle[]);
+        // Fetch subscription status for all owners
+        fetchOwnerSubscriptions(data as Hustle[]);
       }
     };
 
     fetchFeaturedHustles();
   }, []);
+
+  const fetchOwnerSubscriptions = async (hustleList: Hustle[]) => {
+    const ownerIds = [...new Set(hustleList.map(h => h.owner_id))];
+    
+    // Get profiles to get user_ids
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, user_id")
+      .in("id", ownerIds);
+
+    if (!profiles) return;
+
+    const userIds = profiles.map(p => p.user_id);
+
+    // Get subscriptions for these users
+    const { data: subscriptions } = await supabase
+      .from("user_subscriptions")
+      .select("user_id, status, subscription_plans(type)")
+      .in("user_id", userIds)
+      .eq("status", "active");
+
+    // Build lookup map from profile.id (owner_id) to subscription status
+    const subMap: OwnerSubscription = {};
+    profiles.forEach(profile => {
+      const sub = subscriptions?.find(s => s.user_id === profile.user_id);
+      subMap[profile.id] = {
+        isPro: sub?.status === "active",
+        planType: (sub?.subscription_plans as any)?.type || null,
+      };
+    });
+
+    setOwnerSubscriptions(subMap);
+  };
 
   // Fallback data when no hustles exist
   const fallbackQuests = [
@@ -53,6 +98,7 @@ const FeaturedQuests = () => {
       location: "Downtown",
       image_url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop",
       is_featured: true,
+      owner_id: "",
     },
     {
       id: "2",
@@ -62,6 +108,7 @@ const FeaturedQuests = () => {
       location: "Arts District",
       image_url: "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?w=800&auto=format&fit=crop",
       is_featured: false,
+      owner_id: "",
     },
     {
       id: "3",
@@ -71,6 +118,7 @@ const FeaturedQuests = () => {
       location: "Midtown",
       image_url: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&auto=format&fit=crop",
       is_featured: false,
+      owner_id: "",
     },
     {
       id: "4",
@@ -80,6 +128,7 @@ const FeaturedQuests = () => {
       location: "Old Town",
       image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop",
       is_featured: false,
+      owner_id: "",
     },
     {
       id: "5",
@@ -89,6 +138,7 @@ const FeaturedQuests = () => {
       location: "Industrial Zone",
       image_url: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&auto=format&fit=crop",
       is_featured: false,
+      owner_id: "",
     },
     {
       id: "6",
@@ -98,6 +148,7 @@ const FeaturedQuests = () => {
       location: "Riverside",
       image_url: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&auto=format&fit=crop",
       is_featured: false,
+      owner_id: "",
     },
   ];
 
@@ -122,24 +173,32 @@ const FeaturedQuests = () => {
 
         {/* Quest grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {displayHustles.map((hustle, index) => (
-            <Link 
-              key={hustle.id} 
-              to={hustles.length > 0 ? `/hustle/${hustle.id}` : "#"}
-              className="animate-slide-up block"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <QuestCard 
-                name={hustle.name}
-                category={hustle.category?.name || "Uncategorized"}
-                description={hustle.description || ""}
-                location={hustle.location || ""}
-                rating={4.8}
-                image={hustle.image_url || "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop"}
-                featured={hustle.is_featured || false}
-              />
-            </Link>
-          ))}
+          {displayHustles.map((hustle, index) => {
+            const ownerSub = ownerSubscriptions[hustle.owner_id];
+            const isPro = ownerSub?.isPro && ownerSub?.planType === "hustler";
+            const isVerifiedBusiness = ownerSub?.isPro && ownerSub?.planType === "employer";
+            
+            return (
+              <Link 
+                key={hustle.id} 
+                to={hustles.length > 0 ? `/hustle/${hustle.id}` : "#"}
+                className="animate-slide-up block"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <QuestCard 
+                  name={hustle.name}
+                  category={hustle.category?.name || "Uncategorized"}
+                  description={hustle.description || ""}
+                  location={hustle.location || ""}
+                  rating={4.8}
+                  image={hustle.image_url || "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop"}
+                  featured={hustle.is_featured || false}
+                  isPro={isPro}
+                  isVerifiedBusiness={isVerifiedBusiness}
+                />
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>

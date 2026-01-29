@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import StartChatButton from "@/components/StartChatButton";
+import ProBadge from "@/components/ProBadge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -18,6 +19,7 @@ import {
   User
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useHustleOwnerStatus } from "@/hooks/useSubscription";
 
 interface Hustle {
   id: string;
@@ -62,6 +64,9 @@ const HustleDetail = () => {
   const [loading, setLoading] = useState(true);
   const [newReview, setNewReview] = useState({ rating: 5, content: "" });
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Check if hustle owner is Pro
+  const { data: ownerStatus } = useHustleOwnerStatus(hustle?.owner_id);
 
   useEffect(() => {
     if (id) {
@@ -186,6 +191,9 @@ const HustleDetail = () => {
     );
   }
 
+  const isPro = ownerStatus?.isPro && ownerStatus?.planType === "hustler";
+  const isVerifiedBusiness = ownerStatus?.isPro && ownerStatus?.planType === "employer";
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -209,11 +217,15 @@ const HustleDetail = () => {
                   alt={hustle.name}
                   className="w-full h-full object-cover"
                 />
-                {hustle.is_featured && (
-                  <div className="absolute top-4 left-4 px-3 py-1 bg-gradient-hero rounded-full">
-                    <span className="text-sm font-semibold text-primary-foreground">Featured</span>
-                  </div>
-                )}
+                <div className="absolute top-4 left-4 flex gap-2">
+                  {hustle.is_featured && (
+                    <div className="px-3 py-1 bg-gradient-hero rounded-full">
+                      <span className="text-sm font-semibold text-primary-foreground">Featured</span>
+                    </div>
+                  )}
+                  {isPro && <ProBadge type="hustler" size="lg" showLabel />}
+                  {isVerifiedBusiness && <ProBadge type="employer" size="lg" showLabel />}
+                </div>
               </div>
 
               {/* Info */}
@@ -348,7 +360,7 @@ const HustleDetail = () => {
               <div className="bg-card rounded-xl p-6 border border-border">
                 <h3 className="font-semibold text-foreground mb-4">About the Hustler</h3>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center relative">
                     {hustle.profiles?.avatar_url ? (
                       <img
                         src={hustle.profiles.avatar_url}
@@ -358,12 +370,21 @@ const HustleDetail = () => {
                     ) : (
                       <User className="w-6 h-6 text-primary" />
                     )}
+                    {(isPro || isVerifiedBusiness) && (
+                      <div className="absolute -bottom-1 -right-1">
+                        <ProBadge type={isPro ? "hustler" : "employer"} size="sm" />
+                      </div>
+                    )}
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">
-                      {hustle.profiles?.username || "Anonymous"}
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground">
+                        {hustle.profiles?.username || "Anonymous"}
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {isPro ? "Pro Hustler" : isVerifiedBusiness ? "Verified Employer" : "Hustler"}
                     </p>
-                    <p className="text-sm text-muted-foreground">Hustler</p>
                   </div>
                 </div>
                 <StartChatButton 
